@@ -79,8 +79,6 @@ export const Analysis: React.FC<AnalysisProps> = ({ expenses }) => {
                                     onClick={(state) => {
                                         if (state && state.activeLabel) {
                                             setSelectedMonth(String(state.activeLabel));
-                                            // 円グラフやリストが見える位置までスクロールする
-                                            window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
                                         }
                                     }}
                                     style={{ cursor: 'pointer' }}
@@ -101,7 +99,11 @@ export const Analysis: React.FC<AnalysisProps> = ({ expenses }) => {
                                             fill={COLORS[index % COLORS.length]}
                                             radius={index === monthlyData.categories.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                                             maxBarSize={50}
-                                        />
+                                        >
+                                            {monthlyData.data.map((entry, dataIndex) => (
+                                                <Cell key={`cell-${dataIndex}`} fillOpacity={selectedMonth === 'all' || entry.month === selectedMonth ? 1 : 0.4} />
+                                            ))}
+                                        </Bar>
                                     ))}
                                 </BarChart>
                             </ResponsiveContainer>
@@ -113,11 +115,13 @@ export const Analysis: React.FC<AnalysisProps> = ({ expenses }) => {
             </div>
 
             {/* Category Pie Chart & Month Selector */}
-            <div className="card">
+            <div id="analysis-details" className="card" style={{ scrollMarginTop: '1rem' }}>
                 <div className="flex items-center justify-between" style={{ marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div className="flex items-center" style={{ gap: '0.75rem', color: 'var(--text-primary)' }}>
                         <PieChartIcon size={20} style={{ color: 'var(--primary)' }} />
-                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>カテゴリ割合</h2>
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>
+                            {selectedMonth === 'all' ? '全期間' : `${selectedMonth}`} のカテゴリ割合
+                        </h2>
                     </div>
                     {availableMonths.length > 0 && (
                         <select
@@ -133,6 +137,17 @@ export const Analysis: React.FC<AnalysisProps> = ({ expenses }) => {
                         </select>
                     )}
                 </div>
+
+                {categoryTotals.length > 0 && (
+                    <div style={{ textAlign: 'center', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: 'var(--radius-md)' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                            {selectedMonth === 'all' ? '累計支出額' : `${selectedMonth} の支出額`}
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            ¥{categoryTotals.reduce((sum, c) => sum + c.value, 0).toLocaleString()}
+                        </div>
+                    </div>
+                )}
 
                 <div style={{ height: '300px', width: '100%' }}>
                     {categoryTotals.length > 0 ? (
@@ -166,7 +181,9 @@ export const Analysis: React.FC<AnalysisProps> = ({ expenses }) => {
                 <div className="flex items-center justify-between" style={{ marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div className="flex items-center" style={{ gap: '0.75rem', color: 'var(--text-primary)' }}>
                         <List size={20} style={{ color: 'var(--primary)' }} />
-                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>購入内容リスト</h2>
+                        <h2 style={{ fontSize: '1.25rem', margin: 0 }}>
+                            {selectedMonth === 'all' ? '全期間' : `${selectedMonth}`} の購入内容
+                        </h2>
                     </div>
                     <div className="flex items-center gap-2">
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>並び替え:</span>
