@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { Expense } from './types';
 import { fetchExpenses, addExpense as apiAddExpense, toggleSettled as apiToggleSettled, deleteExpense as apiDeleteExpense } from './api/gas';
 import { Layout } from './components/layout/Layout';
@@ -22,6 +22,23 @@ function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'home' | 'analysis'>('home');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    expenses.forEach(e => {
+      const parts = e.date.split('/');
+      if (parts.length >= 2) {
+        months.add(`${parts[0]}/${parts[1]}`);
+      }
+    });
+    return Array.from(months).sort().reverse(); // 新しい月順
+  }, [expenses]);
+
+  const filteredExpenses = useMemo(() => {
+    if (selectedMonth === 'all') return expenses;
+    return expenses.filter(e => e.date.startsWith(selectedMonth));
+  }, [expenses, selectedMonth]);
 
   // 認証の初期ステート（保存された合言葉が環境変数と一致するか）
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -108,7 +125,13 @@ function App() {
     <Layout>
       {activeTab === 'home' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', paddingBottom: '6rem' }}>
-          <Dashboard expenses={expenses} onToggleSettled={handleToggleSettled} />
+          <Dashboard
+            expenses={expenses}
+            onToggleSettled={handleToggleSettled}
+            selectedMonth={selectedMonth}
+            availableMonths={availableMonths}
+            onMonthChange={setSelectedMonth}
+          />
 
           <div className="form-container">
             <style>{`
@@ -120,13 +143,19 @@ function App() {
              `}</style>
             <div className="grid-layout">
               <AddExpenseForm onAdd={handleAddExpense} />
-              <ExpenseList expenses={expenses} isLoading={isLoading} onDelete={handleDeleteExpense} />
+              <ExpenseList expenses={filteredExpenses} isLoading={isLoading} onDelete={handleDeleteExpense} />
             </div>
           </div>
         </div>
       ) : (
         <div style={{ paddingBottom: '6rem' }}>
-          <Analysis expenses={expenses} />
+          <Analysis
+            expenses={expenses}
+            onMonthClick={(month) => {
+              setSelectedMonth(month);
+              setActiveTab('home');
+            }}
+          />
         </div>
       )}
 

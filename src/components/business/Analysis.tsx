@@ -8,9 +8,10 @@ const COLORS = ['#f97316', '#14b8a6', '#8b5cf6', '#64748b', '#eab308'];
 
 type AnalysisProps = {
     expenses: Expense[];
+    onMonthClick?: (month: string) => void;
 };
 
-export const Analysis: React.FC<AnalysisProps> = ({ expenses }) => {
+export const Analysis: React.FC<AnalysisProps> = ({ expenses, onMonthClick }) => {
     const categoryTotals = useMemo(() => calculateCategoryTotals(expenses), [expenses]);
     const monthlyData = useMemo(() => calculateMonthlyCategoryTotals(expenses), [expenses]);
 
@@ -62,7 +63,16 @@ export const Analysis: React.FC<AnalysisProps> = ({ expenses }) => {
                     <div style={{ height: '350px', minWidth: '500px', marginTop: '1rem' }}>
                         {monthlyData.data.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={monthlyData.data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                <BarChart
+                                    data={monthlyData.data}
+                                    margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                                    onClick={(state) => {
+                                        if (state && state.activeLabel && onMonthClick) {
+                                            onMonthClick(String(state.activeLabel));
+                                        }
+                                    }}
+                                    style={{ cursor: onMonthClick ? 'pointer' : 'default' }}
+                                >
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} tickFormatter={(value) => `¥${value.toLocaleString()}`} width={70} />

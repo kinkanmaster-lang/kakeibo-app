@@ -6,11 +6,20 @@ import { Wallet, Users } from 'lucide-react';
 type DashboardProps = {
     expenses: Expense[];
     onToggleSettled: (id: string, isSettled: boolean) => void;
+    selectedMonth?: string;
+    availableMonths?: string[];
+    onMonthChange?: (month: string) => void;
 };
 
-export const Dashboard: React.FC<DashboardProps> = ({ expenses, onToggleSettled }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ expenses, onToggleSettled, selectedMonth = 'all', availableMonths = [], onMonthChange }) => {
+    // 割り勘の計算は常に全期間で行う
     const settlement = useMemo(() => calculateSettlement(expenses), [expenses]);
-    const totalAmount = useMemo(() => calculateTotalAmount(expenses), [expenses]);
+
+    // 合計支出額は選択された月で絞り込む
+    const totalAmount = useMemo(() => {
+        const filtered = selectedMonth === 'all' ? expenses : expenses.filter(e => e.date.startsWith(selectedMonth));
+        return calculateTotalAmount(filtered);
+    }, [expenses, selectedMonth]);
 
     return (
         <div className="flex" style={{ flexDirection: 'column', gap: '2rem' }}>
@@ -19,9 +28,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses, onToggleSettled 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
 
                 <div className="card">
-                    <div className="flex items-center" style={{ gap: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                        <Wallet size={20} />
-                        <span style={{ fontWeight: 500 }}>これまでの累計支出</span>
+                    <div className="flex items-center justify-between" style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                        <div className="flex items-center" style={{ gap: '0.75rem' }}>
+                            <Wallet size={20} />
+                            <span style={{ fontWeight: 500 }}>
+                                {selectedMonth === 'all' ? 'これまでの累計支出' : `${selectedMonth} の支出`}
+                            </span>
+                        </div>
+                        {onMonthChange && availableMonths.length > 0 && (
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => onMonthChange(e.target.value)}
+                                style={{
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '4px',
+                                    border: '1px solid #e2e8f0',
+                                    fontSize: '0.875rem',
+                                    backgroundColor: 'white',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value="all">累計</option>
+                                {availableMonths.map(m => (
+                                    <option key={m} value={m}>{m}</option>
+                                ))}
+                            </select>
+                        )}
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                         ¥{totalAmount.toLocaleString()}
