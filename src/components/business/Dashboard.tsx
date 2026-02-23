@@ -6,12 +6,16 @@ import { Wallet, Users } from 'lucide-react';
 type DashboardProps = {
     expenses: Expense[];
     onToggleSettled: (id: string, isSettled: boolean) => void;
+    onToggleSettledMultiple?: (ids: string[]) => Promise<void>;
     selectedMonth?: string;
     availableMonths?: string[];
     onMonthChange?: (month: string) => void;
 };
 
-export const Dashboard: React.FC<DashboardProps> = ({ expenses, onToggleSettled, selectedMonth = 'all', availableMonths = [], onMonthChange }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ expenses, onToggleSettled, onToggleSettledMultiple, selectedMonth = 'all', availableMonths = [], onMonthChange }) => {
+    const [selectedUnsettledIds, setSelectedUnsettledIds] = React.useState<Set<string>>(new Set());
+    const [isSubmittingMultiple, setIsSubmittingMultiple] = React.useState(false);
+
     // 割り勘の計算は常に全期間で行う
     const settlement = useMemo(() => calculateSettlement(expenses), [expenses]);
 
@@ -79,39 +83,98 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses, onToggleSettled,
 
             {/* Unsettled List Preview (Full width on mobile, 1/2 on desktop) */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>未精算の項目リスト</h2>
+                <div className="flex justify-between items-center" style={{ marginBottom: '1rem' }}>
+                    <h2 style={{ fontSize: '1.25rem', margin: 0 }}>未精算の項目リスト</h2>
+
+                    {onToggleSettledMultiple && expenses.filter(e => !e.isSettled).length > 0 && (
+                        <button
+                            className="btn btn-primary"
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.875rem' }}
+                            disabled={selectedUnsettledIds.size === 0 || isSubmittingMultiple}
+                            onClick={async () => {
+                                if (selectedUnsettledIds.size === 0) return;
+                                setIsSubmittingMultiple(true);
+                                await onToggleSettledMultiple(Array.from(selectedUnsettledIds));
+                                setSelectedUnsettledIds(new Set());
+                                setIsSubmittingMultiple(false);
+                            }}
+                        >
+                            {isSubmittingMultiple ? '処理中...' : `${selectedUnsettledIds.size}件を精算済みにする`}
+                        </button>
+                    )}
+                </div>
+
                 <div style={{ flex: 1, overflowY: 'auto', maxHeight: '350px' }}>
                     {expenses.filter(e => !e.isSettled).length > 0 ? (
-                        <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {expenses.filter(e => !e.isSettled).map(e => (
-                                <li key={e.id} className="flex justify-between items-center" style={{ padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: 'var(--radius-md)' }}>
-                                    <div>
-                                        <div style={{ fontWeight: 500 }}>{e.itemName}</div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{e.date} / {e.category}</div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-2" style={{ flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
-                                        <span style={{ fontWeight: 600 }}>¥{e.amount.toLocaleString()}</span>
-                                        <div className="flex gap-2 items-center" style={{ fontSize: '0.75rem' }}>
-                                            <span style={{
-                                                padding: '0.125rem 0.5rem',
-                                                borderRadius: '999px',
-                                                backgroundColor: e.payer === 'りょうすけ' ? 'var(--primary-light)' : '#fce7f3',
-                                                color: e.payer === 'りょうすけ' ? 'var(--primary)' : 'var(--marin-color)'
-                                            }}>
-                                                {e.payer}
-                                            </span>
-                                            <button
-                                                className="btn btn-primary"
-                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 'auto' }}
-                                                onClick={() => onToggleSettled(e.id, true)}
-                                            >
-                                                精算済みにする
-                                            </button>
+                        <>
+                            {onToggleSettledMultiple && (
+                                <div className="flex items-center" style={{ padding: '0.5rem 0.75rem', marginBottom: '0.5rem', backgroundColor: '#f1f5f9', borderRadius: '4px' }}>
+                                    <input
+                                        type="checkbox"
+                                        style={{ width: '1.2rem', height: '1.2rem', marginRight: '0.75rem', cursor: 'pointer' }}
+                                        checked={selectedUnsettledIds.size === expenses.filter(e => !e.isSettled).length}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                const allIds = expenses.filter(ex => !ex.isSettled).map(ex => ex.id);
+                                                setSelectedUnsettledIds(new Set(allIds));
+                                            } else {
+                                                setSelectedUnsettledIds(new Set());
+                                            }
+                                        }}
+                                    />
+                                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>すべて選択</span>
+                                </div>
+                            )}
+                            <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {expenses.filter(e => !e.isSettled).map(e => (
+                                    <li key={e.id} className="flex justify-between items-center" style={{ padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: 'var(--radius-md)' }}>
+                                        <div className="flex items-center" style={{ gap: '0.75rem' }}>
+                                            {onToggleSettledMultiple && (
+                                                <input
+                                                    type="checkbox"
+                                                    style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
+                                                    checked={selectedUnsettledIds.has(e.id)}
+                                                    onChange={(ev) => {
+                                                        const newSet = new Set(selectedUnsettledIds);
+                                                        if (ev.target.checked) {
+                                                            newSet.add(e.id);
+                                                        } else {
+                                                            newSet.delete(e.id);
+                                                        }
+                                                        setSelectedUnsettledIds(newSet);
+                                                    }}
+                                                />
+                                            )}
+                                            <div>
+                                                <div style={{ fontWeight: 500 }}>{e.itemName}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{e.date} / {e.category}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                                        <div className="flex flex-col items-end gap-2" style={{ flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                                            <span style={{ fontWeight: 600 }}>¥{e.amount.toLocaleString()}</span>
+                                            <div className="flex gap-2 items-center" style={{ fontSize: '0.75rem' }}>
+                                                <span style={{
+                                                    padding: '0.125rem 0.5rem',
+                                                    borderRadius: '999px',
+                                                    backgroundColor: e.payer === 'りょうすけ' ? 'var(--primary-light)' : '#fce7f3',
+                                                    color: e.payer === 'りょうすけ' ? 'var(--primary)' : 'var(--marin-color)'
+                                                }}>
+                                                    {e.payer}
+                                                </span>
+                                                <button
+                                                    className="btn btn-primary"
+                                                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 'auto', opacity: selectedUnsettledIds.size > 0 ? 0.5 : 1 }}
+                                                    disabled={selectedUnsettledIds.size > 0 || isSubmittingMultiple}
+                                                    onClick={() => onToggleSettled(e.id, true)}
+                                                >
+                                                    個別精算
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
                     ) : (
                         <div className="flex justify-center items-center" style={{ height: '200px', color: 'var(--text-muted)' }}>すべて精算済みです！🎉</div>
                     )}

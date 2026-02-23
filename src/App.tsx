@@ -32,7 +32,7 @@ function App() {
     // 常に当月をリストに含める（まだデータがない場合でも当月を選べるようにするため）
     const now = new Date();
     months.add(`${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}`);
-    
+
     expenses.forEach(e => {
       const parts = e.date.split('/');
       if (parts.length >= 2) {
@@ -99,11 +99,27 @@ function App() {
       if (isApiConfigured) {
         await apiToggleSettled(id, isSettled);
       }
-      setExpenses(expenses.map(e => e.id === id ? { ...e, isSettled } : e));
+      setExpenses(prev => prev.map(e => e.id === id ? { ...e, isSettled } : e));
     } catch (err) {
       console.error(err);
       alert('通信エラー: ローカル表示のみ更新します。');
-      setExpenses(expenses.map(e => e.id === id ? { ...e, isSettled } : e));
+      setExpenses(prev => prev.map(e => e.id === id ? { ...e, isSettled } : e));
+    }
+  };
+
+  const handleToggleSettledMultiple = async (ids: string[]) => {
+    try {
+      const isApiConfigured = !!import.meta.env.VITE_GAS_WEB_URL;
+      if (isApiConfigured) {
+        // 並列で複数のデータを更新する
+        await Promise.all(ids.map(id => apiToggleSettled(id, true)));
+      }
+      setExpenses(prev => prev.map(e => ids.includes(e.id) ? { ...e, isSettled: true } : e));
+    } catch (err) {
+      console.error(err);
+      alert('通信エラー: 一部のデータ更新に失敗した可能性があります。画面をリロードして確認してください。');
+      // 成功したものもあるかもしれないので再フェッチするのが確実だが、ここでは楽観的アップデート
+      setExpenses(prev => prev.map(e => ids.includes(e.id) ? { ...e, isSettled: true } : e));
     }
   };
 
@@ -135,6 +151,7 @@ function App() {
           <Dashboard
             expenses={expenses}
             onToggleSettled={handleToggleSettled}
+            onToggleSettledMultiple={handleToggleSettledMultiple}
             selectedMonth={selectedMonth}
             availableMonths={availableMonths}
             onMonthChange={setSelectedMonth}
