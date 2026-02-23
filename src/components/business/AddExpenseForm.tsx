@@ -53,8 +53,8 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: '150px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
+                    <div style={{ minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>日付</label>
                         <input
                             type="date"
@@ -62,12 +62,13 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
                             value={date}
                             onChange={e => setDate(e.target.value)}
                             className="w-full"
+                            style={{ boxSizing: 'border-box' }}
                         />
                     </div>
 
-                    <div style={{ flex: 1, minWidth: '150px' }}>
+                    <div style={{ minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>カテゴリ</label>
-                        <select value={category} onChange={e => setCategory(e.target.value)} className="w-full">
+                        <select value={category} onChange={e => setCategory(e.target.value)} className="w-full" style={{ boxSizing: 'border-box' }}>
                             {categories.map(c => (
                                 <option key={c} value={c}>{c}</option>
                             ))}
@@ -75,8 +76,8 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 2, minWidth: '200px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
+                    <div style={{ gridColumn: '1 / -1', minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>項目名</label>
                         <input
                             type="text"
@@ -85,10 +86,11 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
                             value={itemName}
                             onChange={e => setItemName(e.target.value)}
                             className="w-full"
+                            style={{ boxSizing: 'border-box' }}
                         />
                     </div>
 
-                    <div style={{ flex: 1, minWidth: '120px' }}>
+                    <div style={{ gridColumn: '1 / -1', minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>金額 (¥)</label>
                         <input
                             type="number"
@@ -98,6 +100,7 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
                             value={amount}
                             onChange={e => setAmount(e.target.value)}
                             className="w-full"
+                            style={{ boxSizing: 'border-box' }}
                         />
                     </div>
                 </div>

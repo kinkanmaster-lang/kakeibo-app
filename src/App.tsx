@@ -22,10 +22,17 @@ function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'home' | 'analysis'>('home');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
+    // 常に当月をリストに含める（まだデータがない場合でも当月を選べるようにするため）
+    const now = new Date();
+    months.add(`${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}`);
+    
     expenses.forEach(e => {
       const parts = e.date.split('/');
       if (parts.length >= 2) {
