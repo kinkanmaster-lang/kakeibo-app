@@ -61,8 +61,7 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
                             required
                             value={date}
                             onChange={e => setDate(e.target.value)}
-                            className="w-full"
-                            style={{ boxSizing: 'border-box' }}
+                            style={{ boxSizing: 'border-box', width: '100%', maxWidth: '200px' }}
                         />
                     </div>
 
