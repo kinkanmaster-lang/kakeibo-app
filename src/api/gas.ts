@@ -50,3 +50,20 @@ export const toggleSettled = async (id: string, isSettled: boolean): Promise<boo
 
     return true;
 };
+
+export const deleteExpense = async (id: string): Promise<boolean> => {
+    if (!GAS_URL) throw new Error('GASのWebアプリURLが設定されていません');
+
+    const response = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain',
+        },
+        body: JSON.stringify({ action: 'deleteExpense', id })
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'データの削除に失敗しました');
+
+    return true;
+};

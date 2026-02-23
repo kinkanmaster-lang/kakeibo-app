@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Expense } from './types';
-import { fetchExpenses, addExpense as apiAddExpense, toggleSettled as apiToggleSettled } from './api/gas';
+import { fetchExpenses, addExpense as apiAddExpense, toggleSettled as apiToggleSettled, deleteExpense as apiDeleteExpense } from './api/gas';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './components/business/Dashboard';
 import { AddExpenseForm } from './components/business/AddExpenseForm';
@@ -83,6 +83,22 @@ function App() {
     }
   };
 
+  const handleDeleteExpense = async (id: string) => {
+    if (!window.confirm('この記録を削除しますか？')) return;
+
+    try {
+      const isApiConfigured = !!import.meta.env.VITE_GAS_WEB_URL;
+      if (isApiConfigured) {
+        await apiDeleteExpense(id);
+      }
+      setExpenses(expenses.filter(e => e.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('通信エラー: ローカルの表示のみ更新します。');
+      setExpenses(expenses.filter(e => e.id !== id));
+    }
+  };
+
   // 認証されていない場合はログイン画面を表示
   if (!isAuthenticated) {
     return <Login onLogin={() => setIsAuthenticated(true)} />;
@@ -94,18 +110,17 @@ function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', paddingBottom: '6rem' }}>
           <Dashboard expenses={expenses} onToggleSettled={handleToggleSettled} />
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '2rem', alignItems: 'start' }}>
-            <div style={{ gridColumn: '1 / -1' }} className="form-container">
-              <style>{`
-                 .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start; }
-                 @media (max-width: 768px) {
-                   .grid-layout { grid-template-columns: 1fr; }
-                 }
-               `}</style>
-              <div className="grid-layout">
-                <AddExpenseForm onAdd={handleAddExpense} />
-                <ExpenseList expenses={expenses} isLoading={isLoading} />
-              </div>
+          <div className="form-container">
+            <style>{`
+               .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start; }
+               .grid-layout > * { min-width: 0; }
+               @media (max-width: 768px) {
+                 .grid-layout { grid-template-columns: 1fr; }
+               }
+             `}</style>
+            <div className="grid-layout">
+              <AddExpenseForm onAdd={handleAddExpense} />
+              <ExpenseList expenses={expenses} isLoading={isLoading} onDelete={handleDeleteExpense} />
             </div>
           </div>
         </div>

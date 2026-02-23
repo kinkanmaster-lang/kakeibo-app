@@ -1,12 +1,14 @@
 import React from 'react';
 import type { Expense } from '../../types';
+import { Trash2 } from 'lucide-react';
 
 type ExpenseListProps = {
     expenses: Expense[];
     isLoading: boolean;
+    onDelete: (id: string) => void;
 };
 
-export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, isLoading }) => {
+export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, isLoading, onDelete }) => {
     return (
         <div className="card">
             <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>履歴一覧</h2>
@@ -30,6 +32,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, isLoading })
                                 <th style={{ padding: '0.75rem', whiteSpace: 'nowrap', textAlign: 'right' }}>金額</th>
                                 <th style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>支払った人</th>
                                 <th style={{ padding: '0.75rem', whiteSpace: 'nowrap', textAlign: 'center' }}>精算有無</th>
+                                <th style={{ padding: '0.75rem', whiteSpace: 'nowrap', textAlign: 'center' }}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,6 +70,15 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, isLoading })
                                         ) : (
                                             <span style={{ color: 'var(--warning)', fontWeight: 600 }}>未</span>
                                         )}
+                                    </td>
+                                    <td style={{ padding: '0.75rem', whiteSpace: 'nowrap', textAlign: 'center' }}>
+                                        <button
+                                            onClick={() => onDelete(e.id)}
+                                            style={{ color: 'var(--danger)', padding: '0.25rem', borderRadius: '4px' }}
+                                            title="削除する"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
