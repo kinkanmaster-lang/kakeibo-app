@@ -173,13 +173,7 @@ function App() {
         </div>
       ) : (
         <div style={{ paddingBottom: '6rem' }}>
-          <Analysis
-            expenses={expenses}
-            onMonthClick={(month) => {
-              setSelectedMonth(month);
-              setActiveTab('home');
-            }}
-          />
+          <Analysis expenses={expenses} />
         </div>
       )}
 

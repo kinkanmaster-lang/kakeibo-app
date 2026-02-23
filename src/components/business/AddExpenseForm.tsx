@@ -53,7 +53,7 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
+                <div className="form-row">
                     <div style={{ minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>日付</label>
                         <input
@@ -76,8 +76,8 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
-                    <div style={{ gridColumn: '1 / -1', minWidth: 0 }}>
+                <div className="form-row">
+                    <div style={{ minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>項目名</label>
                         <input
                             type="text"
@@ -90,7 +90,7 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ onAdd }) => {
                         />
                     </div>
 
-                    <div style={{ gridColumn: '1 / -1', minWidth: 0 }}>
+                    <div style={{ minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>金額 (¥)</label>
                         <input
                             type="number"

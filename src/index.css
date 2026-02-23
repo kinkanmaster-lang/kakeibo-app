@@ -181,6 +181,22 @@ textarea:focus {
   margin-bottom: 1rem;
 }
 
+/* Custom form row for mobile-friendly input */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .form-row {
+    flex-direction: row;
+  }
+  .form-row > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 /* Bottom Navigation (Mobile & Desktop) */
 .bottom-nav {
   position: fixed;
